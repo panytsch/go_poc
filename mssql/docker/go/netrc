@@ -1,0 +1,6 @@
+machine github.com
+login panytsch
+password 852a5ffd134368f45b946959579fa6d8d58940ee
+machine api.github.com
+login panytsch
+password 852a5ffd134368f45b946959579fa6d8d58940ee

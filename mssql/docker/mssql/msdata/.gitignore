@@ -1,4 +1,4 @@
-log/*
+log/.gitkeep
 secrets/*
 
 !log/.gitkeep
