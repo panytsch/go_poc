@@ -1,16 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/jmoiron/sqlx"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 	"log"
 )
 
-type testProcedureResponse struct {
-	ReturnCode int
-	one        int
-	two        string
+type firstDataSet struct {
+	One   int
+	Two   string
+	Three int
 }
 
 var server = "localhost"
@@ -21,32 +22,66 @@ var database = "master"
 
 func main() {
 
-	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
-	db, err := sqlx.Open("sqlserver", connString)
+	connString := fmt.Sprintf("sqlserver://%s:%s@%s:%v?database=%s",
+		user, password, server, port, database)
+	db, err := gorm.Open("mssql", connString)
 	if err != nil {
 		log.Fatalf("Got error: %v", err)
 	}
 	defer db.Close()
 
-	execTestSP(db, 1)
-	execTestSP(db, 0)
+	baseUsage(db.DB())
+	usingGorm(db)
 }
 
-func execTestSP(db *sqlx.DB, v uint8) {
-	log.Printf("running sp with parameter %v\n", v)
-	//res := &testProcedureResponse{}
-	rows, err := db.Queryx(fmt.Sprintf("exec testProcedure %v", v))
+func baseUsage(db *sql.DB) {
+	rows, err := db.Query("exec twoDataSets")
 	if err != nil {
-		log.Fatalf("Error while quering: %v", err)
+		log.Fatalf("after rows %v", err)
+	}
+	defer rows.Close()
+
+	rows.Next()
+	str := &firstDataSet{}
+	err = rows.Scan(&str.One, &str.Two, &str.Three)
+	if err != nil {
+		log.Fatalf("while scan %v", err)
+	}
+	log.Printf("first result %v", str)
+	rows.Next()
+
+	if !rows.NextResultSet() {
+		log.Println("no sets left")
+		return
+	}
+
+	rows.Next()
+	var returnCode int
+	err = rows.Scan(&returnCode)
+	if err != nil {
+		log.Fatalf("while second scan %v", err)
+	}
+	log.Printf("result %v", returnCode)
+}
+
+func usingGorm(db *gorm.DB) {
+	rows, err := db.Raw("exec twoDataSets").Rows()
+
+	if err != nil {
+		log.Fatal("after exec", err, rows)
+	}
+	//rows.NextResultSet()
+	rows.Next()
+	log.Printf("got row %v", rows)
+	str := &firstDataSet{}
+	err = rows.Scan(&str.One, &str.Two, &str.Three)
+	if err != nil {
+		log.Printf("after scan error %v", err)
+	} else {
+		log.Printf("got struct %v", str)
 	}
 	rows.Next()
-	m := make(map[string]interface{})
-	_ = rows.MapScan(m)
-	log.Printf("row: %v", m)
-	//err = rows.StructScan(res)
-	//if err != nil {
-	//	log.Fatalf("Error while scanning: %v", err)
-	//}
-	//log.Printf("Result is: %v\n", res)
+
+	log.Printf("exist %v", rows.NextResultSet())
+	log.Printf("rows %v", rows)
 }
