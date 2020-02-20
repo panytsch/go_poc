@@ -1,5 +1,0 @@
-log/*
-secrets/*
-
-!log/.gitkeep
-!secrets/.gitkeep
