@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
+	"github.com/panytsch/go_poc/mssql/go/pkg/procedures/test"
 	"log"
 )
 
@@ -30,8 +31,11 @@ func main() {
 	}
 	defer db.Close()
 
-	baseUsage(db.DB())
-	usingGorm(db)
+	//baseUsage(db.DB())
+	//usingGorm(db)
+	sp := test.NewTwoDataSetsProcedure(db)
+	res := sp.Run()
+	log.Printf("sp result %v", res)
 }
 
 func baseUsage(db *sql.DB) {
@@ -74,7 +78,8 @@ func usingGorm(db *gorm.DB) {
 	rows.Next()
 	log.Printf("got row %v", rows)
 	str := &firstDataSet{}
-	err = rows.Scan(&str.One, &str.Two, &str.Three)
+	//err = rows.Scan(&str.One, &str.Two, &str.Three)
+	err = db.ScanRows(rows, str)
 	if err != nil {
 		log.Printf("after scan error %v", err)
 	} else {
