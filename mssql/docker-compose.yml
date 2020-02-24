@@ -20,8 +20,8 @@ services:
     ports:
       - 1433:1433
     volumes:
-      - C:\testGit\go_poc\mssql/docker/mssql/msdata/data:/var/opt/mssql/data
-      - C:\testGit\go_poc\mssql/docker/mssql/msdata/log:/var/opt/mssql/log
-      - C:\testGit\go_poc\mssql/docker/mssql/msdata/secrets:/var/opt/mssql/secrets
+      - ${PWD}/msdata/data:/var/opt/mssql/data
+      - ${PWD}/msdata/log:/var/opt/mssql/log
+      - ${PWD}/msdata/secrets:/var/opt/mssql/secrets
     networks:
       - default
